@@ -67,13 +67,27 @@ after(async () => {
 
 async function pageFor(t, setup, viewport = { width: 1440, height: 1000 }) {
   const context = await browser.newContext({ viewport });
-  t.after(() => context.close());
   if (setup) await context.addInitScript(setup);
   const page = await context.newPage();
   page.setDefaultTimeout(7000);
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  t.after(() => assert.deepEqual(errors, [], "uncaught browser errors"));
+  t.after(async () => {
+    try {
+      if (!page.isClosed())
+        await page.screenshot({
+          path: path.join(
+            output,
+            t.name.replace(/[^a-zA-Z0-9-]/g, "_") + ".png",
+          ),
+          animations: "disabled",
+          timeout: 5000,
+        });
+      assert.deepEqual(errors, [], "uncaught browser errors");
+    } finally {
+      await context.close();
+    }
+  });
   await page.goto(base);
   return page;
 }
@@ -427,13 +441,11 @@ test("published files also work directly through file://", async (t) => {
 test("legacy CSV remains compatible and explicitly warns about missing source metadata", async (t) => {
   const page = await pageFor(t);
   await view(page, "data");
-  await page
-    .locator("#dataFile")
-    .setInputFiles({
-      name: "legacy.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from("k,xL_mm,xR_mm\n20,0,10\n25,0,12\n30,0,14"),
-    });
+  await page.locator("#dataFile").setInputFiles({
+    name: "legacy.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from("k,xL_mm,xR_mm\n20,0,10\n25,0,12\n30,0,14"),
+  });
   await page.waitForFunction(() =>
     document.querySelector("#dataStatus").textContent.includes("已导入"),
   );
@@ -454,4 +466,244 @@ test("unavailable localStorage does not block learning or data calculations", as
   await view(page, "data");
   await page.locator('[data-action="synthetic"]').click();
   assert.match(await page.locator("#dataResults").innerText(), /3\.00/);
+});
+
+test("training resumes a partial group and continues with the next target after reload", async (t) => {
+  const page = await pageFor(t);
+  await view(page, "procedure");
+  for (let i = 0; i < 4; i++) {
+    await page.locator("#showHint").click();
+    await page.locator("#recordReading").click();
+  }
+  await page.locator("#measureZoomIn").click();
+  await page.locator("#moveNext").click();
+  const reading = await page.locator("#measureReading").innerText();
+  await page.reload();
+  assert.equal(
+    await page.locator("#trainingCount").innerText(),
+    "已记录 4 / 12",
+  );
+  assert.equal(await page.locator("#measureReading").innerText(), reading);
+  assert.match(await page.locator("#measureZoomValue").innerText(), /^1\.25/);
+  assert.match(await page.locator("#measureTarget").innerText(), /第 10 暗环/);
+  for (let i = 4; i < 12; i++) {
+    await page.locator("#showHint").click();
+    await page.locator("#recordReading").click();
+  }
+  await page.locator("#sendToData").click();
+  await page.locator("#view-data.active").waitFor();
+  const result = await page.evaluate(() =>
+    window.NewtonDataTest.calculate(window.newtonTrainingData),
+  );
+  assert.ok(Math.abs(result.paired.rM - 3) < 0.002);
+});
+test("invalid training stays invalid across refresh and undo restart", async (t) => {
+  const page = await pageFor(t);
+  await view(page, "procedure");
+  await page.locator("#showHint").click();
+  await page.locator("#recordReading").click();
+  await page.locator("#moveBack").click();
+  await page.reload();
+  assert.equal(await page.locator("#recordReading").isDisabled(), true);
+  assert.match(await page.locator("#measureFeedback").innerText(), /失效/);
+  await page.locator("#resetTraining").click();
+  assert.equal(await page.locator("#recordReading").isDisabled(), false);
+  await page.locator("#undoTrainingReset").click();
+  assert.equal(await page.locator("#recordReading").isDisabled(), true);
+  assert.equal(
+    await page.locator("#trainingCount").innerText(),
+    "已记录 1 / 12",
+  );
+  await page.reload();
+  assert.equal(await page.locator("#recordReading").isDisabled(), true);
+});
+test("undo restart restores valid readings but expires after new training input", async (t) => {
+  const page = await pageFor(t);
+  await view(page, "procedure");
+  await page.locator("#showHint").click();
+  await page.locator("#recordReading").click();
+  const reading = await page.locator("#measureReading").innerText();
+  await page.locator("#resetTraining").click();
+  await page.locator("#undoTrainingReset").click();
+  assert.equal(
+    await page.locator("#trainingCount").innerText(),
+    "已记录 1 / 12",
+  );
+  assert.equal(await page.locator("#measureReading").innerText(), reading);
+  await page.locator("#resetTraining").click();
+  await page.locator("#moveNext").click();
+  assert.equal(await page.locator("#undoTrainingReset").isDisabled(), true);
+});
+test("completed restored training does not replace saved experimental data until explicit transfer", async (t) => {
+  const page = await pageFor(t);
+  await view(page, "procedure");
+  for (let i = 0; i < 12; i++) {
+    await page.locator("#showHint").click();
+    await page.locator("#recordReading").click();
+  }
+  await view(page, "data");
+  await page.locator('[data-action="synthetic"]').click();
+  await page.locator("#dataLambda").fill("632.8");
+  const saved = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("newton-data")),
+  );
+  await page.reload();
+  assert.deepEqual(
+    await page.evaluate(() => JSON.parse(localStorage.getItem("newton-data"))),
+    saved,
+  );
+  assert.equal(await page.locator("#dataLambda").inputValue(), "632.8");
+  await page.locator('[data-action="training"]').click();
+  assert.match(await page.locator("#dataOrigin").innerText(), /操作训练记录/);
+});
+test("consecutive row deletions and clear can be undone with exact source and parameters", async (t) => {
+  const page = await pageFor(t);
+  await view(page, "data");
+  await page.locator('[data-action="synthetic"]').click();
+  await page.locator("#dataLambda").fill("632.8");
+  const original = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("newton-data")),
+  );
+  await page.locator('[data-remove="0"]').click();
+  await page.locator('[data-remove="0"]').click();
+  assert.equal(await page.locator("#dataBody tr").count(), 4);
+  await page.locator("#dataUndo").click();
+  await page.locator("#dataUndo").click();
+  assert.deepEqual(
+    await page.evaluate(() => JSON.parse(localStorage.getItem("newton-data"))),
+    original,
+  );
+  await page.locator('[data-action="clear"]').click();
+  await page.locator("#dataUndo").click();
+  assert.deepEqual(
+    await page.evaluate(() => JSON.parse(localStorage.getItem("newton-data"))),
+    original,
+  );
+  await page.reload();
+  assert.deepEqual(
+    await page.evaluate(() => JSON.parse(localStorage.getItem("newton-data"))),
+    original,
+  );
+});
+test("undoing clear preserves image metadata and the independent uncertainty model stays disabled", async (t) => {
+  const page = await pageFor(t);
+  await imageSample(page);
+  await page.locator("#imgScale").fill("0.01");
+  await page.locator("#imgSend").click();
+  await page.locator("#view-data.active").waitFor();
+  const original = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("newton-data")),
+  );
+  await page.locator('[data-action="clear"]').click();
+  assert.equal(await page.locator("#dataDelta").isDisabled(), false);
+  await page.locator("#dataUndo").click();
+  assert.equal(await page.locator("#dataDelta").isDisabled(), true);
+  assert.deepEqual(
+    await page.evaluate(() => JSON.parse(localStorage.getItem("newton-data"))),
+    original,
+  );
+});
+test("subsequent edits invalidate destructive undo instead of replacing newer readings", async (t) => {
+  const page = await pageFor(t);
+  await view(page, "data");
+  await page.locator('[data-action="synthetic"]').click();
+  await page.locator('[data-remove="0"]').click();
+  await page.locator('[data-index="0"][data-col="xL"]').fill("123.456");
+  assert.equal(await page.locator("#dataUndo").isDisabled(), true);
+  assert.equal(
+    await page.locator('[data-index="0"][data-col="xL"]').inputValue(),
+    "123.456",
+  );
+});
+test("progress reset can be undone and the restored marks persist", async (t) => {
+  const page = await pageFor(t);
+  await view(page, "principle");
+  await page.locator('[data-done="principle"]').click();
+  await page.locator("#resetProgress").click();
+  assert.equal(await page.locator("#progressText").innerText(), "0 / 5");
+  await page.locator("#undoProgress").click();
+  assert.equal(await page.locator("#progressText").innerText(), "1 / 5");
+  await page.reload();
+  assert.equal(await page.locator("#progressText").innerText(), "1 / 5");
+});
+test("storage failure is visible and retry saves the latest data without claiming other records saved", async (t) => {
+  const page = await pageFor(t, () => {
+    window.blockWrites = true;
+    const write = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      if (window.blockWrites)
+        throw new DOMException("quota", "QuotaExceededError");
+      return write.call(this, key, value);
+    };
+  });
+  await view(page, "data");
+  await page.locator('[data-action="synthetic"]').click();
+  await page.locator("#dataLambda").fill("632.8");
+  assert.equal(
+    await page.locator("#dataSaveStatus").getAttribute("data-state"),
+    "error",
+  );
+  assert.match(await page.locator("#dataSaveStatus").innerText(), /未保存/);
+  const csv = await download(
+    page,
+    '#dataSaveTools [data-action="export-backup"]',
+  );
+  assert.match(await fs.readFile(csv, "utf8"), /632\.8/);
+  await page.evaluate(() => {
+    window.blockWrites = false;
+  });
+  await page.locator('[data-retry-storage="newton-data"]').click();
+  assert.equal(
+    await page.locator("#dataSaveStatus").getAttribute("data-state"),
+    "saved",
+  );
+  assert.equal(
+    await page.evaluate(
+      () => JSON.parse(localStorage.getItem("newton-data")).options.lambdaNm,
+    ),
+    632.8,
+  );
+  assert.equal(
+    await page.locator("#progressSaveStatus").getAttribute("data-state"),
+    "error",
+  );
+  await page.screenshot({
+    path: path.join(output, "data-save-recovered.png"),
+    animations: "disabled",
+  });
+});
+test("training save failure offers export of partial invalid readings and independent retry", async (t) => {
+  const page = await pageFor(t, () => {
+    window.blockTraining = true;
+    const write = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      if (key === "newton-training" && window.blockTraining)
+        throw new DOMException("quota", "QuotaExceededError");
+      return write.call(this, key, value);
+    };
+  });
+  await view(page, "procedure");
+  await page.locator("#showHint").click();
+  await page.locator("#recordReading").click();
+  await page.locator("#moveBack").click();
+  assert.equal(
+    await page.locator("#trainingSaveStatus").getAttribute("data-state"),
+    "error",
+  );
+  const csv = await fs.readFile(
+    await download(page, "#exportTraining"),
+    "utf8",
+  );
+  assert.match(csv, /left,30,/);
+  assert.match(csv, /,true,/);
+  await page.evaluate(() => {
+    window.blockTraining = false;
+  });
+  await page.locator('[data-retry-storage="newton-training"]').click();
+  assert.equal(
+    await page.locator("#trainingSaveStatus").getAttribute("data-state"),
+    "saved",
+  );
+  await page.reload();
+  assert.equal(await page.locator("#recordReading").isDisabled(), true);
 });

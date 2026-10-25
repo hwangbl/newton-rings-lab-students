@@ -2,3 +2,5 @@
 
 /* Contain the absolutely positioned accessible table header inside its scroll area. */
 .data-app .data-tablewrap{position:relative}
+
+.save-row{margin:12px 0}.save-status{font-size:12px;line-height:1.65;color:#47755b;overflow-wrap:anywhere}.save-status[data-state="error"]{color:#9b4a24}.save-row span:not([hidden]){display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.training-reset,.progress-reset{display:flex;flex-wrap:wrap;gap:8px}.training-reset{justify-content:flex-end}.training-reset button:disabled,.progress-reset button:disabled{opacity:.45;cursor:not-allowed}.app-footer{flex-wrap:wrap;gap:12px}.sidebar .save-status{font-size:10px;line-height:1.6}.sidebar [data-retry-storage]{margin-top:4px}@media(max-width:650px){.measurement-lab>.panel-top{flex-wrap:wrap;gap:12px}.training-reset{justify-content:flex-start}}
