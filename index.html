@@ -3,41 +3,64 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="牛顿环交互实验室：实验预习、真实仪器照片、等厚干涉模拟、单向读数训练与实验数据处理。">
-<meta name="theme-color" content="#f5f5ef"><title>牛顿环 · 交互实验室</title>
-<link rel="stylesheet" href="application.a39d91ad4138.min.css">
+<meta name="theme-color" content="#10405c"><title>牛顿环 · 交互实验室</title>
+<link rel="stylesheet" href="application.895ce48c84fd.min.css">
 </head>
 <body>
-<aside class="sidebar">
- <a href="#overview" class="brand" aria-label="牛顿环交互实验室首页"><span class="brand-mark"><i></i><i></i><i></i></span><span>光学实验室<small>OPTICS LABORATORY</small></span></a>
- <div class="course-label">大学物理实验 <span>／</span> 等厚干涉</div>
- <nav aria-label="学习模块">
-  <a href="#overview" data-view="overview" class="nav-item active"><b>01</b><span>实验导览<small>开始你的探索</small></span><em>↗</em></a>
-  <a href="#principle" data-view="principle" class="nav-item"><b>02</b><span>干涉原理<small>看见光的叠加</small></span><em>↗</em></a>
-  <a href="#instruments" data-view="instruments" class="nav-item"><b>03</b><span>认识仪器<small>走近真实实验台</small></span><em>↗</em></a>
-  <a href="#procedure" data-view="procedure" class="nav-item"><b>04</b><span>操作训练<small>一步一步完成测量</small></span><em>↗</em></a>
-  <a href="#data" data-view="data" class="nav-item"><b>05</b><span>数据处理<small>从读数到曲率半径</small></span><em>↗</em></a>
-  <a href="#image" data-view="image" class="nav-item"><b>06</b><span>图像分析<small>从照片提取条纹</small></span><em>↗</em></a>
-  <a href="#quiz" data-view="quiz" class="nav-item"><b>07</b><span>预习自测<small>检验你的理解</small></span><em>↗</em></a>
- </nav>
- <div class="sidebar-bottom"><div class="progress-label">你的预习进度 <span id="progressText">0 / 5</span></div><div class="progress-track"><i id="progressBar"></i></div><p>学习记录保存在当前浏览器</p><button class="text-button" id="openSources">↗ 课件与参考资料</button></div>
-</aside>
+<a class="skip-link" href="#main">跳到主要内容</a>
+<div class="utility"><div class="site-wrap"><span>大学物理实验 · 在线学习平台</span><div><span>本科实验教学</span><button id="helpButton">使用指南 ↗</button></div></div></div>
+<header class="site-header">
+ <div class="masthead site-wrap">
+  <a href="#overview" class="brand" aria-label="牛顿环交互实验室首页"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span><strong>大学物理实验</strong><small>PHYSICS LABORATORY</small></span></a>
+  <div class="course-name"><strong>牛顿环</strong><span>NEWTON'S RINGS · VIRTUAL LAB</span></div>
+  <button id="menuToggle" class="icon-button mobile-menu" aria-label="展开导航" aria-controls="mainNavigation">☰</button>
+ </div>
+ <nav class="main-nav sidebar" id="mainNavigation" aria-label="学习模块"><div class="nav-row site-wrap">
+  <a href="#overview" data-view="overview" class="nav-item active">实验概览</a>
+  <a href="#principle" data-view="principle" class="nav-item">实验原理</a>
+  <a href="#instruments" data-view="instruments" class="nav-item">认识仪器</a>
+  <a href="#procedure" data-view="procedure" class="nav-item">操作训练<span class="nav-dot" aria-hidden="true"></span></a>
+  <a href="#data" data-view="data" class="nav-item">数据处理与作图</a>
+  <a href="#image" data-view="image" class="nav-item">图像分析</a>
+  <a href="#quiz" data-view="quiz" class="nav-item">预习自测</a>
+  <span class="nav-end">OBSERVE · MEASURE · DISCOVER</span>
+ </div></nav>
+</header>
 <div class="app-shell">
- <header class="topbar"><button id="menuToggle" class="icon-button mobile-menu" aria-label="展开导航">☰</button><div><span class="breadcrumb">实验课程</span><span class="divider">/</span><strong>牛顿环</strong></div><div class="top-actions"><span class="status-dot"></span><span>自主预习 · 交互探索</span><button class="outline-button" id="helpButton">使用指南 <span>↗</span></button></div></header>
- <main>
+ <main id="main" tabindex="-1">
  <section id="view-overview" class="view active">
-  <div class="page-kicker"><span class="little-line"></span> EXPERIMENT 01 <span class="kicker-sep">／</span> NEWTON'S RINGS</div>
-  <div class="hero-heading"><div><h1>牛顿环<span class="title-dot">.</span></h1><p class="hero-subtitle">在明暗之间，看见光的波动。</p></div><div class="hero-note">一块透镜，一层空气膜。<br>从同心圆环出发，测量透镜的曲率半径。</div></div>
-  <div class="overview-lab">
-   <div class="ring-stage"><div class="stage-label"><span class="live-dot"></span> 反射光下的干涉图样 <span class="stage-chip">实时模拟</span></div><canvas id="heroCanvas" aria-label="牛顿环干涉图样，随曲率半径和波长变化"></canvas><div class="stage-crosshair"></div><div class="stage-bottom"><span>平凸透镜 + 平面玻璃</span><span id="heroScale">视场 16 × 16 mm</span></div><div class="ring-caption"><span>01</span> 内疏外密，等厚成环</div></div>
-   <div class="explore-panel"><div class="panel-eyebrow">从观察开始 <span>↗</span></div><h2>改变参数，<br>观察圆环如何变化</h2><p>拖动滑块，看看同一级暗环的大小会怎样改变。</p><label class="slider-label" for="heroRadius">透镜曲率半径 <output id="heroRadiusValue">3.00 m</output></label><input id="heroRadius" type="range" min="1000" max="6000" step="50" value="3000"><div class="range-ends"><span>1.00 m</span><span>6.00 m</span></div><label class="slider-label" for="heroWave">入射光波长 <output id="heroWaveValue">589.3 nm</output></label><input id="heroWave" type="range" min="450" max="650" step="0.1" value="589.3"><div class="range-ends"><span>450 nm</span><span>650 nm</span></div><div class="observation"><span>观察提示</span><p id="heroObservation">增大曲率半径，空气膜变得更平缓，同一级暗环向外扩展。</p></div><a href="#principle" class="primary-button">探索干涉原理 <span>→</span></a></div>
+  <div class="home-hero">
+   <div class="hero-visual ring-stage"><canvas id="heroCanvas" aria-label="牛顿环干涉图样，随曲率半径和波长变化"></canvas></div>
+   <div class="hero-shade" aria-hidden="true"></div>
+   <div class="hero-content site-wrap">
+    <div class="hero-line"></div><p class="eyebrow">OPTICS EXPERIMENT · 01</p>
+    <h1>看见干涉，<br>理解牛顿环</h1><div class="hero-en">Light, revealed in rings.</div>
+    <p class="hero-intro">一块透镜，一层空气膜。<br>在同心圆环的明暗之间，理解光的干涉，<br>测量透镜的曲率半径。</p>
+    <div class="hero-actions"><a href="#principle" class="primary-button">开始预习 ↗</a><a href="#instruments" class="outline-button">走进实验台 →</a></div>
+    <div class="hero-footer"><span>等厚干涉</span><span>读数显微镜</span><span>逐差与拟合</span></div>
+   </div><div class="hero-caption">REFLECTED LIGHT · IDEAL INTERFERENCE MODEL</div>
   </div>
-  <div class="learning-header"><h2>你的实验学习路径</h2><span>按顺序学习，也可以直接进入所需模块</span></div>
-  <div class="learning-path">
-   <a href="#instruments"><span class="path-number">01 <i>↗</i></span><h3>认识仪器</h3><p>真实照片 · 三维旋转 · 鼓轮联动</p><span class="path-bottom">熟悉实验台 <b>→</b></span></a>
-   <a href="#procedure"><span class="path-number">02 <i>↗</i></span><h3>练习操作</h3><p>调节光路 · 数环 · 单向测量</p><span class="path-bottom">完成一次模拟实验 <b>→</b></span></a>
-   <a href="#data"><span class="path-number">03 <i>↗</i></span><h3>处理数据</h3><p>逐差法 · 线性拟合 · 不确定度</p><span class="path-bottom">带入自己的实验数据 <b>→</b></span></a>
+  <div class="learning-strip"><div class="site-wrap">
+   <a href="#principle" class="strip-item"><span class="strip-num">01</span><span><strong>理解干涉原理</strong><small>PRINCIPLES</small></span></a>
+   <a href="#instruments" class="strip-item"><span class="strip-num">02</span><span><strong>认识真实仪器</strong><small>APPARATUS</small></span></a>
+   <a href="#procedure" class="strip-item"><span class="strip-num">03</span><span><strong>完成单向测量</strong><small>MEASUREMENT</small></span></a>
+   <a href="#data" class="strip-item"><span class="strip-num">04</span><span><strong>处理实验数据</strong><small>DATA ANALYSIS</small></span></a>
+  </div></div>
+  <div class="home-content site-wrap">
+   <div class="learning-header"><div><p class="eyebrow">LEARNING MODULES</p><h2>从理解，到亲手完成</h2></div><span>按顺序学习，也可以直接进入所需模块</span></div>
+   <div class="learning-path">
+    <a href="#principle"><span class="path-number">01 <i>↗</i></span><h3>原理探索</h3><p>改变波长、曲率半径与膜厚，<br>看见圆环背后的物理规律。</p><span class="path-bottom">理解等厚干涉 <b>→</b></span></a>
+    <a href="#instruments"><span class="path-number">02 <i>↗</i></span><h3>仪器与读数</h3><p>对照真实照片认识部件，<br>旋转模型，练习鼓轮与调焦。</p><span class="path-bottom">熟悉实验台 <b>→</b></span></a>
+    <a href="#procedure"><span class="path-number">03 <i>↗</i></span><h3>分步实验</h3><p>跟随操作指引，保持单向移动，<br>完成一组完整的位置测量。</p><span class="path-bottom">开始操作训练 <b>→</b></span></a>
+    <a href="#data"><span class="path-number">04 <i>↗</i></span><h3>数据与分析</h3><p>录入实验读数，比较逐差与拟合，<br>理解不确定度和有效数字。</p><span class="path-bottom">带入自己的数据 <b>→</b></span></a>
+   </div>
+   <div class="home-observe-heading"><div><p class="eyebrow">OBSERVE & EXPLORE</p><h2>环的大小，由什么决定？</h2></div><p>拖动参数，观察同一级暗环怎样变化。</p></div>
+   <div class="overview-lab">
+    <div class="ring-stage"><div class="stage-label"><span class="live-dot"></span>反射光下的干涉图样<span class="stage-chip">实时模拟</span></div><canvas id="overviewCanvas" aria-label="与参数滑块联动的牛顿环观察视场"></canvas><div class="stage-bottom"><span>平凸透镜 + 平面玻璃</span><span id="heroScale">短边视场 16 mm</span></div><div class="ring-caption">内疏外密，等厚成环</div></div>
+    <div class="explore-panel"><div class="panel-eyebrow">LIVE OBSERVATION <span>↗</span></div><h2>改变参数，<br>观察圆环如何变化</h2><p>增大曲率半径或波长，看看同一级暗环如何向外扩展。</p><label class="slider-label" for="heroRadius">透镜曲率半径 <output id="heroRadiusValue">3.00 m</output></label><input id="heroRadius" type="range" min="1000" max="6000" step="50" value="3000"><div class="range-ends"><span>1.00 m</span><span>6.00 m</span></div><label class="slider-label" for="heroWave">入射光波长 <output id="heroWaveValue">589.3 nm</output></label><input id="heroWave" type="range" min="450" max="650" step="0.1" value="589.3"><div class="range-ends"><span>450 nm</span><span>650 nm</span></div><div class="observation"><span>观察提示</span><p id="heroObservation">同一级暗环的大小随曲率半径和波长变化。</p></div><a href="#principle" class="primary-button">探索干涉原理 <span>→</span></a></div>
+   </div>
+   <div class="home-bottom"><div><p class="eyebrow">BEFORE THE EXPERIMENT</p><h3>带着问题，走进实验室</h3><p>为什么测直径而不是直接测半径？为什么测量时要保持同一方向？先通过观察和操作找到线索，再用自己的数据检验理解。</p><p class="source-foot">依据 2023—2025 年实验资料与 2026 年课件整理。模拟用于理解和训练，实测结果以实验仪器为准。</p></div><div class="home-progress"><p class="eyebrow">YOUR LEARNING PROGRESS</p><h3>让每一步学习都有记录</h3><div class="progress-label">已完成的学习模块 <span id="progressText">0 / 5</span></div><div class="progress-track"><i id="progressBar"></i></div><p>学习记录保存在当前浏览器，实验读数可导出留存。</p></div></div>
   </div>
-  <div class="source-foot">依据 2023—2025 年实验资料与 2026 年课件整理 <span>·</span> 模拟用于理解和训练，实测结果以实验仪器为准</div>
  </section>
 
  <section id="view-principle" class="view">
@@ -67,11 +90,11 @@
  <section id="view-image" class="view"><div class="page-kicker">06 ／ IMAGE ANALYSIS</div><div class="section-heading"><div><h1>图像分析</h1><p>上传环纹照片，从灰度分布中提取条纹位置。</p></div><span class="tag">图片在本机浏览器内处理</span></div><div id="imageWorkspace"></div></section>
  <section id="view-quiz" class="view"><div class="page-kicker">07 ／ SELF CHECK</div><div class="section-heading"><div><h1>预习自测</h1><p>在进入实验室之前，确认你已掌握关键概念。</p></div><span class="tag">作答后查看解析</span></div><div id="quizArea"></div><div class="quiz-footer"><button id="submitQuiz" class="primary-button">提交并查看解析 →</button><button id="resetQuiz" class="outline-button">重新作答</button><span id="quizScore" aria-live="polite"></span></div></section>
  </main>
- <footer class="app-footer"><span>牛顿环 · 交互实验室</span><span>以观察开始，以测量求证。</span><button class="text-button" id="resetProgress">重置学习进度</button></footer>
+ <footer class="app-footer"><div class="footer-grid site-wrap"><div><strong>牛顿环 · 交互实验室</strong><p>从同心圆环出发，在观察与测量中理解光。</p></div><div><span>大学物理实验 / 光学</span><p>课程预习 · 操作训练 · 数据分析</p></div><div><button class="text-button" id="openSources">课程资料与模型说明 ↗</button><p>教学模拟不代替实际实验，图片和数据在本机处理。</p><button class="text-button" id="resetProgress">重置学习进度</button></div></div><div class="footer-bottom site-wrap"><span>PHYSICS LABORATORY</span><em>Learning through experiment.</em></div></footer>
 </div>
 <dialog id="sourceDialog"><div class="dialog-head"><div><div class="page-kicker">LEARNING RESOURCES</div><h2>课件与参考资料</h2></div><button class="icon-button close-dialog" aria-label="关闭">×</button></div><div id="sourcesContent"></div></dialog>
 <dialog id="helpDialog"><div class="dialog-head"><h2>使用指南</h2><button class="icon-button close-dialog" aria-label="关闭">×</button></div><ol class="help-list"><li>在“干涉原理”中改变 R、λ 和中心间隙，观察条纹变化。</li><li>在“认识仪器”中点击真实照片的标记，了解部件与操作方法。</li><li>按“操作训练”的步骤调节，完成 12 次单向读数并送入数据处理。</li><li>在“数据处理”中录入或导入自己的读数，比较逐差法和线性拟合结果，检查不确定度计算。</li><li>在“图像分析”中上传照片，自动提取环心和暗环；标定后可送入数据处理。完成“预习自测”并阅读解析。进度和读数保存在当前浏览器，可导出 CSV 留存。</li></ol><p class="muted">可直接打开本地 index.html；在线版本建议使用现代浏览器。仿真与示例均作教学用途，不代替实际实验。</p></dialog>
 <div id="toast" role="status"></div>
 
-<script src="application.1205d9aeb278.min.js"></script>
+<script src="application.37cfeffa101e.min.js"></script>
 </body></html>
